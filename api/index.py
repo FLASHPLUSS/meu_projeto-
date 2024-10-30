@@ -15,15 +15,18 @@ def carregar_dados_json():
     dados_completos = []
     for url in json_urls:
         try:
-            # Fazer o download do arquivo JSON
-            response = requests.get(url)
+            # Fazer o download do arquivo JSON com timeout
+            response = requests.get(url, timeout=5)
             if response.status_code == 200:
-                # Carregar o conteúdo JSON e adicionar aos dados completos
+                # Verifica se o JSON é uma lista antes de fazer extend
                 dados = json.loads(response.content)
-                dados_completos.extend(dados)
+                if isinstance(dados, list):
+                    dados_completos.extend(dados)
+                else:
+                    print(f"O JSON de {url} não é uma lista e será ignorado.")
             else:
-                print(f"Erro ao carregar JSON de {url}")
-        except Exception as e:
+                print(f"Erro ao carregar JSON de {url} - Status Code: {response.status_code}")
+        except requests.exceptions.RequestException as e:
             print(f"Erro ao carregar JSON de {url}: {e}")
     return dados_completos
 
