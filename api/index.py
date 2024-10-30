@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import requests
 import json
 
@@ -18,7 +18,6 @@ def carregar_dados_json():
             # Fazer o download do arquivo JSON com timeout
             response = requests.get(url, timeout=5)
             if response.status_code == 200:
-                # Verifica se o JSON é uma lista antes de fazer extend
                 dados = json.loads(response.content)
                 if isinstance(dados, list):
                     dados_completos.extend(dados)
@@ -34,11 +33,20 @@ def carregar_dados_json():
 def filmes_series():
     # Carregar dados dos três JSONs
     data = carregar_dados_json()
+    
+    # Paginação
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 50))  # Limitar a 50 itens por página
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_data = data[start:end]
 
-    # Retornar os dados combinados
+    # Retornar os dados paginados
     return jsonify({
+        'page': page,
+        'per_page': per_page,
         'total': len(data),
-        'data': data
+        'data': paginated_data
     })
 
 if __name__ == '__main__':
